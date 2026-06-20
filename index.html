@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل ESP32 — Pinout و ADC/DAC/PWM والمشاريع</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --card2:#1c2330; --border:#30363d;
+    --txt:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --accent2:#3fb950;
+    --adc:#a371f7; --dac:#e3b341; --pwm:#58a6ff; --touch:#f778ba;
+    --strap:#db61a2; --flash:#f0883e; --danger:#f85149; --green:#3fb950;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);
+    color:var(--txt);line-height:1.8;padding:0;font-size:16px}
+  header{background:linear-gradient(135deg,#1f6feb33,#3fb95022);
+    border-bottom:1px solid var(--border);padding:32px 20px;text-align:center}
+  header h1{font-size:1.9rem;margin-bottom:8px;background:linear-gradient(90deg,#58a6ff,#3fb950);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  header p{color:var(--muted);font-size:1rem}
+  .wrap{max-width:980px;margin:0 auto;padding:20px}
+  nav{position:sticky;top:0;background:#0d1117ee;backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);padding:10px;z-index:50;
+    display:flex;gap:8px;overflow-x:auto;justify-content:center;flex-wrap:wrap}
+  nav a{color:var(--accent);text-decoration:none;padding:6px 12px;border-radius:8px;
+    font-size:.9rem;white-space:nowrap;border:1px solid transparent;transition:.2s}
+  nav a:hover{background:var(--card);border-color:var(--border)}
+  section{margin:36px 0;scroll-margin-top:70px}
+  h2{font-size:1.5rem;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--border);
+    display:flex;align-items:center;gap:10px}
+  h3{font-size:1.2rem;margin:20px 0 10px;color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:20px;margin:16px 0}
+  .grid{display:grid;gap:14px}
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+  .chip{display:flex;align-items:center;gap:8px;background:var(--card2);
+    padding:8px 12px;border-radius:10px;font-size:.9rem;border:1px solid var(--border)}
+  .dot{width:16px;height:16px;border-radius:4px;flex-shrink:0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:right}
+  th{background:var(--card2);color:var(--accent)}
+  tr:nth-child(even){background:#1c233055}
+  code{background:#1f2630;padding:2px 7px;border-radius:6px;font-family:'Consolas',monospace;
+    color:#79c0ff;font-size:.88em;direction:ltr;display:inline-block}
+  pre{background:#0b0f14;border:1px solid var(--border);border-radius:12px;padding:16px;
+    overflow-x:auto;direction:ltr;text-align:left;margin:12px 0;position:relative}
+  pre code{background:none;padding:0;color:#c9d1d9;font-size:.85rem;line-height:1.6;display:block}
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.num{color:#79c0ff}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.ty{color:#ffa657}
+  .warn{background:#f8514922;border:1px solid #f8514955;border-radius:10px;padding:12px 16px;margin:12px 0}
+  .ok{background:#3fb95022;border:1px solid #3fb95055;border-radius:10px;padding:12px 16px;margin:12px 0}
+  .tip{background:#58a6ff22;border:1px solid #58a6ff55;border-radius:10px;padding:12px 16px;margin:12px 0}
+  .pins{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem}
+  .pin{display:flex;align-items:center;gap:6px;background:var(--card2);padding:6px 10px;
+    border-radius:8px;border:1px solid var(--border);direction:ltr;justify-content:flex-start}
+  .pin b{font-family:monospace;color:#fff;background:#21262d;padding:1px 6px;border-radius:5px}
+  .tag{font-size:.7rem;padding:1px 6px;border-radius:20px;color:#0d1117;font-weight:700}
+  .proj{border-right:4px solid var(--accent)}
+  .proj h3{display:flex;align-items:center;gap:8px}
+  .badge{font-size:.7rem;background:var(--accent);color:#0d1117;padding:2px 10px;border-radius:20px;font-weight:700}
+  .wires{font-size:.88rem;background:var(--card2);border-radius:10px;padding:12px;margin:10px 0}
+  .wires div{padding:3px 0;border-bottom:1px dashed var(--border);direction:ltr;text-align:left}
+  .wires div:last-child{border:none}
+  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--border);margin-top:40px;font-size:.9rem}
+  .big{font-size:1.05rem}
+  details{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:10px 0}
+  summary{cursor:pointer;font-weight:600;color:var(--accent)}
+  .copybtn{position:absolute;top:8px;left:8px;background:#21262d;border:1px solid var(--border);
+    color:var(--muted);font-size:.7rem;padding:3px 10px;border-radius:6px;cursor:pointer}
+  .copybtn:hover{color:var(--txt)}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ دليل ESP32 الشامل</h1>
+  <p>الـ Pinout · الفرق بين ADC / DAC / PWM · مشاريع عملية بالكود</p>
+</header>
+
+<nav>
+  <a href="#intro">مقدمة</a>
+  <a href="#pinout">الـ Pinout</a>
+  <a href="#warn">بنات احذرها</a>
+  <a href="#adc">ADC</a>
+  <a href="#dac">DAC</a>
+  <a href="#pwm">PWM</a>
+  <a href="#compare">المقارنة</a>
+  <a href="#projects">المشاريع</a>
+  <a href="#quiz">اختبر نفسك</a>
+  <a href="#faq">أسئلة شائعة</a>
+</nav>
+
+<div class="wrap">
+
+<section id="intro">
+  <h2>🧠 إيه هو الـ ESP32؟</h2>
+  <div class="card">
+    <p class="big">معالج قوي رخيص فيه <b>WiFi + Bluetooth</b> جاهزين، مثالي للـ IoT والروبوتات.</p>
+    <div class="legend" style="margin-top:14px">
+      <div class="chip"><span class="dot" style="background:var(--accent)"></span> Dual-core @240MHz</div>
+      <div class="chip"><span class="dot" style="background:var(--green)"></span> 520KB RAM</div>
+      <div class="chip"><span class="dot" style="background:var(--dac)"></span> WiFi b/g/n 2.4GHz</div>
+      <div class="chip"><span class="dot" style="background:var(--touch)"></span> Bluetooth 4.2 + BLE</div>
+      <div class="chip"><span class="dot" style="background:var(--adc)"></span> 12-bit ADC</div>
+      <div class="chip"><span class="dot" style="background:var(--flash)"></span> 34 GPIO</div>
+    </div>
+  </div>
+</section>
+
+<section id="pinout">
+  <h2>📌 خريطة البنات (Pinout)</h2>
+  <div class="card">
+    <h3>دليل الألوان</h3>
+    <div class="legend">
+      <div class="chip"><span class="dot" style="background:var(--pwm)"></span> PWM (كل البنات تقريباً)</div>
+      <div class="chip"><span class="dot" style="background:var(--green)"></span> GPIO دخل + خرج</div>
+      <div class="chip"><span class="dot" style="background:#1a7f37"></span> GPIO دخل فقط</div>
+      <div class="chip"><span class="dot" style="background:var(--dac)"></span> DAC (خرج analog)</div>
+      <div class="chip"><span class="dot" style="background:var(--adc)"></span> ADC (قراءة analog)</div>
+      <div class="chip"><span class="dot" style="background:var(--touch)"></span> Touch (لمس)</div>
+      <div class="chip"><span class="dot" style="background:var(--strap)"></span> Strapping (بوت)</div>
+      <div class="chip"><span class="dot" style="background:var(--flash)"></span> Flash (ممنوع)</div>
+    </div>
+
+    <h3>البنات حسب الوظيفة</h3>
+    <div class="pins">
+      <div class="pin"><b>GPIO36</b> <span class="tag" style="background:var(--adc)">ADC1_0</span> دخل فقط</div>
+      <div class="pin"><b>GPIO39</b> <span class="tag" style="background:var(--adc)">ADC1_3</span> دخل فقط</div>
+      <div class="pin"><b>GPIO34</b> <span class="tag" style="background:var(--adc)">ADC1_6</span> دخل فقط</div>
+      <div class="pin"><b>GPIO35</b> <span class="tag" style="background:var(--adc)">ADC1_7</span> دخل فقط</div>
+      <div class="pin"><b>GPIO32</b> <span class="tag" style="background:var(--touch)">T9</span><span class="tag" style="background:var(--adc)">ADC1_4</span></div>
+      <div class="pin"><b>GPIO33</b> <span class="tag" style="background:var(--touch)">T8</span><span class="tag" style="background:var(--adc)">ADC1_5</span></div>
+      <div class="pin"><b>GPIO25</b> <span class="tag" style="background:var(--dac)">DAC1</span></div>
+      <div class="pin"><b>GPIO26</b> <span class="tag" style="background:var(--dac)">DAC2</span></div>
+      <div class="pin"><b>GPIO27</b> <span class="tag" style="background:var(--touch)">T7</span><span class="tag" style="background:var(--adc)">ADC2_7</span></div>
+      <div class="pin"><b>GPIO14</b> <span class="tag" style="background:var(--touch)">T6</span><span class="tag" style="background:var(--adc)">ADC2_6</span></div>
+      <div class="pin"><b>GPIO13</b> <span class="tag" style="background:var(--touch)">T4</span><span class="tag" style="background:var(--adc)">ADC2_4</span></div>
+      <div class="pin"><b>GPIO12</b> <span class="tag" style="background:var(--strap)">STRAP</span><span class="tag" style="background:var(--touch)">T5</span></div>
+      <div class="pin"><b>GPIO4</b> <span class="tag" style="background:var(--touch)">T0</span><span class="tag" style="background:var(--adc)">ADC2_0</span></div>
+      <div class="pin"><b>GPIO0</b> <span class="tag" style="background:var(--strap)">STRAP</span><span class="tag" style="background:var(--touch)">T1</span> BOOT</div>
+      <div class="pin"><b>GPIO15</b> <span class="tag" style="background:var(--strap)">STRAP</span><span class="tag" style="background:var(--touch)">T3</span></div>
+      <div class="pin"><b>GPIO17</b> <span class="tag" style="background:var(--green)">TX2</span></div>
+      <div class="pin"><b>GPIO16</b> <span class="tag" style="background:var(--green)">RX2</span></div>
+      <div class="pin"><b>GPIO1</b> <span class="tag" style="background:#8b949e;color:#0d1117">TX0</span> برمجة</div>
+      <div class="pin"><b>GPIO3</b> <span class="tag" style="background:#8b949e;color:#0d1117">RX0</span> برمجة</div>
+      <div class="pin"><b>GPIO21</b> <span class="tag" style="background:var(--green)">I2C SDA</span></div>
+      <div class="pin"><b>GPIO22</b> <span class="tag" style="background:var(--green)">I2C SCL</span></div>
+      <div class="pin"><b>GPIO23</b> <span class="tag" style="background:var(--green)">MOSI</span></div>
+      <div class="pin"><b>GPIO19</b> <span class="tag" style="background:var(--green)">MISO</span></div>
+      <div class="pin"><b>GPIO18</b> <span class="tag" style="background:var(--green)">SCK</span></div>
+      <div class="pin"><b>GPIO5</b> <span class="tag" style="background:var(--green)">CS</span></div>
+      <div class="pin"><b>GPIO2</b> <span class="tag" style="background:var(--strap)">STRAP</span> LED مدمج</div>
+    </div>
+  </div>
+</section>
+
+<section id="warn">
+  <h2>⚠️ بنات لازم تحذر منها</h2>
+  <div class="card">
+    <div class="warn">
+      <b>🚫 ممنوعة نهائياً — GPIO 6,7,8,9,10,11</b><br>
+      متوصلة بالـ Flash memory. لو استخدمتها البورد هيهنج أو مايبوتش. اعتبرها مش موجودة.
+    </div>
+    <div class="tip">
+      <b>📥 دخل فقط (Input Only) — GPIO 34,35,36,39</b><br>
+      مفيهاش output ولا pull-up داخلي. استخدمها لقراءة الحساسات بس.
+    </div>
+    <h3>🔧 Strapping Pins (وقت البوت)</h3>
+    <table>
+      <tr><th>البن</th><th>الحالة المطلوبة وقت البوت</th></tr>
+      <tr><td><code>GPIO0</code></td><td>HIGH (لو LOW يدخل وضع البرمجة)</td></tr>
+      <tr><td><code>GPIO2</code></td><td>LOW أو floating</td></tr>
+      <tr><td><code>GPIO12</code></td><td>LOW</td></tr>
+      <tr><td><code>GPIO15</code></td><td>HIGH</td></tr>
+    </table>
+    <div class="warn">
+      <b>📡 تحذير الـ WiFi:</b> بنات <code>ADC2</code> (مثل GPIO25,26,27...) مبتشتغلش وقت ما الـ WiFi شغال.
+      لو هتستخدم WiFi استخدم <code>ADC1</code> فقط (GPIO 32→39).
+    </div>
+  </div>
+</section>
+
+<section id="adc">
+  <h2>📊 ADC — قراءة الجهد (Analog → Digital)</h2>
+  <div class="card">
+    <p>بياخد جهد analog من <b>0 لـ 3.3V</b> ويحوله لرقم. الدقة <b>12-bit</b> → قيمة من <b>0 لـ 4095</b>.</p>
+    <div class="tip">0V → 0 &nbsp;|&nbsp; 1.65V → 2048 &nbsp;|&nbsp; 3.3V → 4095</div>
+    <pre><code><span class="cm">// قراءة جهد من potentiometer على GPIO34</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  Serial.<span class="fn">begin</span>(<span class="num">115200</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="ty">int</span> raw = <span class="fn">analogRead</span>(<span class="num">34</span>);            <span class="cm">// 0 → 4095</span>
+  <span class="ty">float</span> volt = raw * (<span class="num">3.3</span> / <span class="num">4095.0</span>); <span class="cm">// تحويل لفولت</span>
+  Serial.<span class="fn">printf</span>(<span class="str">"Raw:%d V:%.2f\n"</span>, raw, volt);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+}</code></pre>
+    <p><b>استخداماته:</b> potentiometer، LDR (ضوء)، حساس حرارة، أي حساس بيطلع جهد متغير.</p>
+  </div>
+</section>
+
+<section id="dac">
+  <h2>🔊 DAC — إخراج جهد حقيقي (Digital → Analog)</h2>
+  <div class="card">
+    <p>العكس — بيطلّع <b>جهد analog حقيقي ثابت</b>. اتنين بس: <code>GPIO25</code> و <code>GPIO26</code>. الدقة <b>8-bit</b> → من <b>0 لـ 255</b>.</p>
+    <div class="tip">0 → 0V &nbsp;|&nbsp; 128 → ~1.65V &nbsp;|&nbsp; 255 → 3.3V</div>
+    <pre><code><span class="cm">// إخراج جهد analog حقيقي على GPIO25</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">dacWrite</span>(<span class="num">25</span>, <span class="num">0</span>);    <span class="cm">// 0V</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+  <span class="fn">dacWrite</span>(<span class="num">25</span>, <span class="num">128</span>);  <span class="cm">// ~1.65V</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+  <span class="fn">dacWrite</span>(<span class="num">25</span>, <span class="num">255</span>);  <span class="cm">// 3.3V</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+}</code></pre>
+    <p><b>استخداماته:</b> توليد صوت / موجة sine، التحكم في جهد تماثلي حقيقي.</p>
+  </div>
+</section>
+
+<section id="pwm">
+  <h2>📐 PWM — تقليد الـ Analog بالنبضات</h2>
+  <div class="card">
+    <p>ده <b>مش جهد حقيقي</b>! بيشغّل ويقفل البن بسرعة جداً، والتحكم في <b>نسبة وقت التشغيل (duty cycle)</b>.
+    متوسط الجهد بيبان كأنه analog. أي GPIO يقدر يعمله.</p>
+    <pre><code><span class="cm">// التحكم في سطوع LED — Arduino Core v3.0+</span>
+<span class="kw">const</span> <span class="ty">int</span> led = <span class="num">16</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">ledcAttach</span>(led, <span class="num">5000</span>, <span class="num">8</span>); <span class="cm">// pin, 5kHz, 8-bit</span>
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">for</span> (<span class="ty">int</span> d=<span class="num">0</span>; d&lt;=<span class="num">255</span>; d++){ <span class="fn">ledcWrite</span>(led,d); <span class="fn">delay</span>(<span class="num">8</span>); }
+  <span class="kw">for</span> (<span class="ty">int</span> d=<span class="num">255</span>; d&gt;=<span class="num">0</span>; d--){ <span class="fn">ledcWrite</span>(led,d); <span class="fn">delay</span>(<span class="num">8</span>); }
+}</code></pre>
+    <details>
+      <summary>النسخة القديمة (Core v2.x)</summary>
+      <pre><code><span class="fn">ledcSetup</span>(<span class="num">0</span>, <span class="num">5000</span>, <span class="num">8</span>);   <span class="cm">// channel, freq, res</span>
+<span class="fn">ledcAttachPin</span>(<span class="num">16</span>, <span class="num">0</span>);   <span class="cm">// pin, channel</span>
+<span class="fn">ledcWrite</span>(<span class="num">0</span>, duty);       <span class="cm">// channel, value</span></code></pre>
+    </details>
+    <p><b>استخداماته:</b> سطوع LED، سرعة موتور، زاوية servo، تشغيل صوت بسيط.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <h2>🔑 المقارنة — الفرق في جدول</h2>
+  <div class="card">
+    <table>
+      <tr><th>الميزة</th><th>ADC</th><th>DAC</th><th>PWM</th></tr>
+      <tr><td>الاتجاه</td><td>قراءة (input)</td><td>إخراج (output)</td><td>إخراج (output)</td></tr>
+      <tr><td>بيعمل إيه</td><td>analog ← رقم</td><td>رقم ← جهد حقيقي</td><td>نبضات ON/OFF</td></tr>
+      <tr><td>جهد حقيقي؟</td><td>—</td><td>✅ آه</td><td>❌ لأ، متوسط</td></tr>
+      <tr><td>البنات</td><td>كتير (32-39)</td><td>25 و 26 فقط</td><td>أي GPIO</td></tr>
+      <tr><td>الدقة</td><td>12-bit (0-4095)</td><td>8-bit (0-255)</td><td>قابلة للضبط</td></tr>
+      <tr><td>الأمر</td><td><code>analogRead()</code></td><td><code>dacWrite()</code></td><td><code>ledcWrite()</code></td></tr>
+    </table>
+    <div class="ok">
+      <b>القاعدة العملية:</b><br>
+      • عايز تقرأ analog؟ → <b>ADC</b><br>
+      • عايز جهد analog ثابت حقيقي (صوت/موجة)؟ → <b>DAC</b><br>
+      • عايز تتحكم في سطوع/سرعة/servo؟ → <b>PWM</b>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <h2>🛠️ مشاريع عملية</h2>
+
+  <div class="card proj">
+    <h3>1. ديمر LED بالـ Potentiometer <span class="badge">ADC + PWM</span></h3>
+    <p>تلف الـ potentiometer فيزيد/يقل سطوع الـ LED. بيجمع قراءة ADC مع تحكم PWM.</p>
+    <div class="wires">
+      <div>Potentiometer middle → GPIO34</div>
+      <div>Potentiometer sides → 3V3 &amp; GND</div>
+      <div>LED + → resistor 220Ω → GPIO16</div>
+      <div>LED − → GND</div>
+    </div>
+    <pre><code><span class="kw">const</span> <span class="ty">int</span> pot=<span class="num">34</span>, led=<span class="num">16</span>;
+<span class="kw">void</span> <span class="fn">setup</span>(){ <span class="fn">ledcAttach</span>(led,<span class="num">5000</span>,<span class="num">8</span>); }
+<span class="kw">void</span> <span class="fn">loop</span>(){
+  <span class="ty">int</span> raw=<span class="fn">analogRead</span>(pot);          <span class="cm">// 0-4095</span>
+  <span class="ty">int</span> duty=<span class="fn">map</span>(raw,<span class="num">0</span>,<span class="num">4095</span>,<span class="num">0</span>,<span class="num">255</span>); <span class="cm">// 0-255</span>
+  <span class="fn">ledcWrite</span>(led,duty);
+}</code></pre>
+  </div>
+
+  <div class="card proj">
+    <h3>2. صفّارة نغمة متغيرة <span class="badge">DAC</span></h3>
+    <p>توليد موجة sine حقيقية على سماعة/buzzer بالـ DAC.</p>
+    <div class="wires">
+      <div>Buzzer + → GPIO25 (DAC1)</div>
+      <div>Buzzer − → GND</div>
+    </div>
+    <pre><code><span class="cm">// موجة sine على DAC</span>
+<span class="kw">void</span> <span class="fn">setup</span>(){}
+<span class="kw">void</span> <span class="fn">loop</span>(){
+  <span class="kw">for</span>(<span class="ty">int</span> i=<span class="num">0</span>; i&lt;<span class="num">360</span>; i++){
+    <span class="ty">int</span> v=<span class="num">128</span>+<span class="num">127</span>*<span class="fn">sin</span>(i*<span class="num">3.14159</span>/<span class="num">180</span>);
+    <span class="fn">dacWrite</span>(<span class="num">25</span>, v);
+    <span class="fn">delayMicroseconds</span>(<span class="num">50</span>);
+  }
+}</code></pre>
+  </div>
+
+  <div class="card proj">
+    <h3>3. تحكم في Servo <span class="badge">PWM</span></h3>
+    <p>تحريك ذراع servo motor بين 0° و 180° باستخدام مكتبة ESP32Servo.</p>
+    <div class="wires">
+      <div>Servo signal (أصفر) → GPIO18</div>
+      <div>Servo + (أحمر) → 5V</div>
+      <div>Servo − (بني) → GND</div>
+    </div>
+    <pre><code><span class="cm">#include &lt;ESP32Servo.h&gt;</span>
+Servo myServo;
+<span class="kw">void</span> <span class="fn">setup</span>(){ myServo.<span class="fn">attach</span>(<span class="num">18</span>); }
+<span class="kw">void</span> <span class="fn">loop</span>(){
+  myServo.<span class="fn">write</span>(<span class="num">0</span>);   <span class="fn">delay</span>(<span class="num">1000</span>);
+  myServo.<span class="fn">write</span>(<span class="num">90</span>);  <span class="fn">delay</span>(<span class="num">1000</span>);
+  myServo.<span class="fn">write</span>(<span class="num">180</span>); <span class="fn">delay</span>(<span class="num">1000</span>);
+}</code></pre>
+  </div>
+
+  <div class="card proj">
+    <h3>4. مفتاح لمس (Touch) <span class="badge">Touch + GPIO</span></h3>
+    <p>لمس سلك متوصل بـ GPIO4 يشغّل LED — من غير زرار فيزيائي.</p>
+    <div class="wires">
+      <div>سلك مكشوف → GPIO4 (Touch0)</div>
+      <div>LED + → resistor 220Ω → GPIO2</div>
+      <div>LED − → GND</div>
+    </div>
+    <pre><code><span class="kw">const</span> <span class="ty">int</span> touchPin=<span class="num">4</span>, led=<span class="num">2</span>;
+<span class="kw">void</span> <span class="fn">setup</span>(){ <span class="fn">pinMode</span>(led,OUTPUT); Serial.<span class="fn">begin</span>(<span class="num">115200</span>); }
+<span class="kw">void</span> <span class="fn">loop</span>(){
+  <span class="ty">int</span> t=<span class="fn">touchRead</span>(touchPin); <span class="cm">// أقل = لمس</span>
+  Serial.<span class="fn">println</span>(t);
+  <span class="fn">digitalWrite</span>(led, t&lt;<span class="num">40</span> ? HIGH : LOW);
+  <span class="fn">delay</span>(<span class="num">100</span>);
+}</code></pre>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>🎯 اختبر نفسك</h2>
+  <div class="card">
+    <p class="big">10 أسئلة على كل اللي اتشرح. اختار الإجابة وهتعرف على طول صح ولا غلط مع التوضيح.</p>
+    <div id="quizBox"></div>
+    <div id="scoreBox" style="display:none;text-align:center;margin-top:20px;padding:20px;
+      background:var(--card2);border-radius:12px;border:1px solid var(--border)">
+      <h3 style="margin:0">نتيجتك: <span id="score"></span> / 10</h3>
+      <p id="scoreMsg" style="margin:8px 0"></p>
+      <button onclick="resetQuiz()" style="background:var(--accent);color:#0d1117;border:none;
+        padding:10px 24px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:8px">حاول تاني 🔄</button>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <h2>❓ أسئلة شائعة</h2>
+  <div class="card">
+    <details>
+      <summary>إزاي أبرمج الـ ESP32 لأول مرة؟</summary>
+      <p style="margin-top:10px">نزّل <b>Arduino IDE</b> → من Boards Manager ثبّت حزمة <code>esp32 by Espressif</code> →
+      اختار البورد <b>ESP32 Dev Module</b> → وصّل الكابل واختار الـ COM port → اضغط Upload. لو علّق عند
+      <code>Connecting...</code> اضغط زرار <b>BOOT</b> على البورد لحد ما يبدأ الرفع.</p>
+    </details>
+    <details>
+      <summary>ليه الكود مبيترفعش وبيقولي "Failed to connect"؟</summary>
+      <p style="margin-top:10px">٣ أسباب شائعة: (1) كابل USB شحن بس من غير داتا — غيّره. (2) محتاج تثبّت درايفر
+      <code>CP2102</code> أو <code>CH340</code> حسب البورد. (3) اضغط واستمر على زرار <b>BOOT</b> وقت ما يبدأ
+      الرفع وسيبه لما يبدأ الـ writing.</p>
+    </details>
+    <details>
+      <summary>الفرق بين 3V3 و 5V (VIN) فين أوصّل إيه؟</summary>
+      <p style="margin-top:10px">الـ <b>3V3</b> هو جهد تشغيل الشريحة — وصّل عليه الحساسات اللي بتشتغل 3.3V.
+      الـ <b>5V/VIN</b> بيجي من الـ USB — استخدمه لتغذية البورد من بطارية، أو لتشغيل servo و LEDs اللي عايزة 5V.
+      ⚠️ بنات الـ GPIO نفسها <b>3.3V بس</b> — متدخلش عليها 5V غير عن طريق divider أو level shifter.</p>
+    </details>
+    <details>
+      <summary>أنهي بنات أقدر أستخدمها بأمان من غير مشاكل؟</summary>
+      <p style="margin-top:10px">أأمن البنات للاستخدام العام: <code>GPIO 4, 5, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33</code>.
+      ابعد عن <code>6-11</code> (Flash) و الـ strapping pins (<code>0, 2, 12, 15</code>) وقت البوت،
+      و<code>34-39</code> للقراءة فقط.</p>
+    </details>
+    <details>
+      <summary>أوصّل كام LED أو موتور على البورد مباشرة؟</summary>
+      <p style="margin-top:10px">كل بن GPIO بيطلّع <b>~12mA آمنة</b> (40mA أقصى حد). LED صغير عادي ينفع مباشرة مع مقاومة 220Ω.
+      لكن <b>الموتور والـ servo والريليه</b> ممنوع توصلهم مباشرة — استخدم <b>ترانزستور / driver (مثل L298N أو ULN2003)</b>
+      ومصدر طاقة خارجي، وإلا تحرق البن أو تعمل reset للبورد.</p>
+    </details>
+    <details>
+      <summary>إزاي أوفّر بطارية وأخلي البورد ينام (Deep Sleep)؟</summary>
+      <p style="margin-top:10px">استخدم <code>esp_deep_sleep_start()</code> — البورد بينزل استهلاكه من ~80mA لـ ~10µA.
+      تقدر تصحّيه بمؤقّت أو بلمسة على touch pin أو بإشارة على بن. مثال بسيط:</p>
+      <pre><code><span class="fn">esp_sleep_enable_timer_wakeup</span>(<span class="num">10</span> * <span class="num">1000000</span>); <span class="cm">// 10 ثواني</span>
+<span class="fn">esp_deep_sleep_start</span>();</code></pre>
+    </details>
+    <details>
+      <summary>ESP32 ولا Arduino Uno — أختار أنهي للمشروع؟</summary>
+      <p style="margin-top:10px">لو محتاج <b>WiFi/Bluetooth</b>، سرعة عالية (240MHz)، ذاكرة أكبر، أو ADC/DAC →
+      <b>ESP32</b> بفرق كبير وبسعر قريب. الـ Uno أبسط للمبتدئين وبيشتغل 5V (أسهل مع بعض الحساسات القديمة).
+      للروبوتات والـ IoT الـ ESP32 هو الاختيار.</p>
+    </details>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  صُنع بـ ⚡ لمحمود نجيب · دليل ESP32 التفاعلي<br>
+  <span style="font-size:.8rem">انسخ أي كود بزرار «نسخ» اللي فوق كل code block</span>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre=>{
+  const btn=document.createElement('button');
+  btn.className='copybtn';btn.textContent='نسخ';
+  btn.onclick=()=>{
+    navigator.clipboard.writeText(pre.querySelector('code').innerText);
+    btn.textContent='✓ تم';setTimeout(()=>btn.textContent='نسخ',1500);
+  };
+  pre.appendChild(btn);
+});
+
+// ===== Quiz =====
+const QUIZ=[
+  {q:"كام بن DAC موجود في الـ ESP32 وعلى أنهي GPIO؟",
+   o:["واحد على GPIO25","اتنين على GPIO25 و GPIO26","أربعة على أي GPIO","مفيش DAC خالص"],
+   a:1,e:"الـ ESP32 فيه DAC اتنين بس: DAC1 على GPIO25 و DAC2 على GPIO26، كل واحد 8-bit."},
+  {q:"دقة الـ ADC في الـ ESP32 بتطلع قيمة من كام لكام؟",
+   o:["0 إلى 255","0 إلى 1023","0 إلى 4095","0 إلى 65535"],
+   a:2,e:"الـ ADC دقته 12-bit، يعني 2^12 = 4096 قيمة، من 0 لـ 4095."},
+  {q:"البنات GPIO 6,7,8,9,10,11 ليه ممنوع استخدامها؟",
+   o:["لأنها input only","لأنها متوصلة بالـ Flash memory","لأنها بتسخن","لأنها بطيئة"],
+   a:1,e:"دي بنات الـ SPI Flash. لو استخدمتها البورد هيهنج أو مايبوتش."},
+  {q:"عايز تتحكم في سطوع LED — تستخدم إيه؟",
+   o:["ADC","DAC","PWM","Touch"],
+   a:2,e:"الـ PWM (عن طريق ledcWrite) هو الأنسب للتحكم في السطوع والسرعة، ويشتغل على أي GPIO."},
+  {q:"الـ PWM بيطلّع جهد analog حقيقي؟",
+   o:["آه، حقيقي زي الـ DAC","لأ، بيطلّع نبضات ON/OFF ومتوسطها يبان analog","آه بس أقل دقة","يعتمد على البن"],
+   a:1,e:"الـ PWM مش جهد حقيقي — بيشغّل ويقفل بسرعة، والمتوسط (duty cycle) بيبان كأنه analog."},
+  {q:"ليه بنات ADC2 مبتنفعش وقت الـ WiFi شغال؟",
+   o:["لأنها بطيئة","لأن الـ WiFi بيستخدم نفس وحدة الـ ADC2","لأنها input only","معلومة غلط، بتشتغل عادي"],
+   a:1,e:"الـ WiFi بيحجز وحدة ADC2، عشان كده مع الـ WiFi استخدم ADC1 (GPIO 32→39) بس."},
+  {q:"البنات GPIO 34,35,36,39 مميزة بإيه؟",
+   o:["DAC فقط","Input only — قراءة بس","أسرع البنات","بنات Touch"],
+   a:1,e:"دي input only، مفيهاش output ولا pull-up داخلي، بتستخدم لقراءة الحساسات."},
+  {q:"الأمر الصح لقراءة جهد analog؟",
+   o:["dacWrite()","ledcWrite()","analogRead()","touchRead()"],
+   a:2,e:"analogRead(pin) بيقرا الجهد ويرجّع رقم من 0 لـ 4095."},
+  {q:"الـ Strapping pin زي GPIO0 لازم يكون في حالة إيه وقت البوت العادي؟",
+   o:["LOW","HIGH","floating","مفيش فرق"],
+   a:1,e:"GPIO0 لازم HIGH وقت البوت العادي. لو LOW البورد بيدخل وضع البرمجة."},
+  {q:"عايز تطلّع موجة sine حقيقية لسماعة — تستخدم إيه؟",
+   o:["PWM","DAC","ADC","digitalWrite"],
+   a:1,e:"الـ DAC بيطلّع جهد analog حقيقي متغير، مثالي لتوليد موجة sine للصوت."}
+];
+let answered=0, correct=0;
+function buildQuiz(){
+  answered=0;correct=0;
+  const box=document.getElementById('quizBox');box.innerHTML='';
+  document.getElementById('scoreBox').style.display='none';
+  QUIZ.forEach((item,qi)=>{
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0';
+    let h='<div style="font-weight:600;margin-bottom:10px">'+(qi+1)+'. '+item.q+'</div>';
+    item.o.forEach((opt,oi)=>{
+      h+='<button class="qopt" data-q="'+qi+'" data-o="'+oi+'" style="display:block;width:100%;text-align:right;'+
+         'background:var(--card);border:1px solid var(--border);color:var(--txt);padding:10px 14px;'+
+         'border-radius:8px;margin:5px 0;cursor:pointer;font-family:inherit;font-size:.92rem">'+opt+'</button>';
+    });
+    h+='<div class="qexp" style="display:none;margin-top:8px;padding:10px;border-radius:8px;font-size:.88rem"></div>';
+    d.innerHTML=h;box.appendChild(d);
+  });
+  document.querySelectorAll('.qopt').forEach(b=>b.onclick=pick);
+}
+function pick(e){
+  const b=e.target, qi=+b.dataset.q, oi=+b.dataset.o, item=QUIZ[qi];
+  const parent=b.parentElement;
+  if(parent.dataset.done)return;
+  parent.dataset.done='1';answered++;
+  const opts=parent.querySelectorAll('.qopt');
+  opts.forEach((o,i)=>{
+    o.style.cursor='default';
+    if(i===item.a){o.style.background='#3fb95033';o.style.borderColor='var(--green)';}
+    else if(i===oi){o.style.background='#f8514933';o.style.borderColor='var(--danger)';}
+  });
+  if(oi===item.a)correct++;
+  const exp=parent.querySelector('.qexp');
+  exp.style.display='block';
+  exp.style.background=oi===item.a?'#3fb95022':'#58a6ff22';
+  exp.innerHTML=(oi===item.a?'✅ صح! ':'❌ غلط. ')+item.e;
+  if(answered===QUIZ.length)showScore();
+}
+function showScore(){
+  const sb=document.getElementById('scoreBox');sb.style.display='block';
+  document.getElementById('score').textContent=correct;
+  let m=correct>=9?'ممتاز يا وحش! 🏆 إنت فاهم الـ ESP32 كويس جداً':
+        correct>=7?'كويس جداً! 👏 راجع اللي غلطت فيه وهتبقى تمام':
+        correct>=5?'مش بطال 👍 ارجع للشرح فوق وذاكر تاني':
+        'محتاج مراجعة 📚 ارجع اقرا الأقسام من الأول';
+  document.getElementById('scoreMsg').textContent=m;
+  sb.scrollIntoView({behavior:'smooth'});
+}
+function resetQuiz(){buildQuiz();document.getElementById('quiz').scrollIntoView({behavior:'smooth'});}
+buildQuiz();
+</script>
+</body>
+</html>
